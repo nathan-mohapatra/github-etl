@@ -1,3 +1,27 @@
+"""
+This script allows the user to extract, transform, and load data from any public GitHub repository (so that it can be
+used for further analysis). The requests library is used to make HTTP requests to the GitHub REST API and save the data
+locally in JSON format. This structured data is then parsed and stored in a SQL database using SQLite.
+
+This script serves as a flexible ETL tool that integrates with the GitHub REST API. For example, regardless of the size
+or the activity level of a repository, it can be supplied (in `OWNER_REPO`) and this script will execute all the same.
+
+Currently, this script only retrieves data concerning commits, contributors, issues, and pulls; however, API endpoints
+can easily be added or removed as needed (though the API rate limit is, obviously, a limiting factor) by referencing
+https://docs.github.com/en/rest/reference.
+
+This script requires that `requests` be installed within the Python environment you are running it in.
+
+This file can be imported as a module and contains the following functions:
+    * get_rate_limit: Tracks current usage of the GitHub REST API.
+    * extract: Given a public GitHub repository and a GitHub REST API endpoint, retrieves associated data in JSON
+    format.
+    * transform_load: Given the data retrieved from a GitHub REST API endpoint in JSON format, creates and populates
+    a table in a SQL database.
+    * main: Establishes connection and interactivity with SQL database; performs ETL operations on predetermined GitHub
+    REST API endpoints.
+"""
+
 import json
 import requests
 import sqlite3
@@ -13,6 +37,12 @@ OWNER_REPO = 'tensorflow/tensorflow'
 
 
 def get_rate_limit(headers):
+    """
+    Tracks current usage of the GitHub REST API.
+
+    :param headers: The HTTP authorization request header.
+    :return: The number of remaining API requests available.
+    """
     url = 'https://api.github.com/rate_limit'
     res = requests.get(url, headers=headers)
     remaining = int(res.json()['resources']['core']['remaining'])
@@ -23,6 +53,13 @@ def get_rate_limit(headers):
 
 
 def extract(endpoint, has_state=False):
+    """
+    Given a public GitHub repository and a GitHub REST API endpoint, retrieves associated data in JSON format.
+
+    :param endpoint: The final "point of entry" in the GitHub REST API.
+    :param has_state: Whether JSON objects have a `state` key.
+    :return: The response to the request in JSON format.
+    """
     # HTTP authorization request header
     headers = {'authorization': 'token ' + ACCESS_TOKEN}
 
@@ -60,6 +97,15 @@ def extract(endpoint, has_state=False):
 
 
 def transform_load(conn, curs, json_data, endpoint):
+    """
+    Given the data retrieved from a GitHub REST API endpoint in JSON format, creates and populates a table in a SQL
+    database.
+
+    :param conn: The `Connection` object that represents a SQL database.
+    :param curs: The `Cursor` object that interacts with a SQL database.
+    :param json_data: The structured data that is parsed and stored.
+    :param endpoint: The GitHub REST API endpoint which indicates how the data is structured.
+    """
     print(f'Parsing and storing {endpoint} in "{OWNER_REPO.split("/")[1]}_repo.db"...')
 
     # Schema for commits table
@@ -225,6 +271,10 @@ def transform_load(conn, curs, json_data, endpoint):
 
 
 def main():
+    """
+    Establishes connection and interactivity with SQL database; performs ETL operations on predetermined GitHub REST API
+    endpoints.
+    """
     # Establish connection and interactivity with SQL database
     conn = sqlite3.connect(f'{OWNER_REPO.split("/")[1]}_repo.db')
     curs = conn.cursor()
