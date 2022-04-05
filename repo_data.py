@@ -65,7 +65,7 @@ def extract(endpoint, has_state=False):
 
     # Check if API rate limit is exceeded
     if get_rate_limit(headers):
-        print(f'Getting {endpoint} from {OWNER_REPO}...')
+        print(f'Extracting {endpoint} from {OWNER_REPO}...')
 
         # Items are paginated; `per_page` parameter can increase items per page to 100 (maximum)
         # This is a particularly important optimization, since an API request will be made for each page
@@ -106,13 +106,24 @@ def transform_load(conn, curs, json_data, endpoint):
     :param json_data: The structured data that is parsed and stored.
     :param endpoint: The GitHub REST API endpoint which indicates how the data is structured.
     """
-    print(f'Parsing and storing {endpoint} in "{OWNER_REPO.split("/")[1]}_repo.db"...')
+    print(f'Transforming and loading {endpoint} in "{OWNER_REPO.split("/")[1]}_repo.db"...')
+
+    # Schema for contributors table
+    if endpoint == 'contributors':
+        curs.execute("""
+            CREATE TABLE IF NOT EXISTS contributors(
+            id INTEGER PRIMARY KEY,
+            node_id VARCHAR(255) NOT NULL,
+            login VARCHAR(255) NOT NULL,
+            contributions INTEGER NOT NULL
+            );
+            """)
 
     # Schema for commits table
-    if endpoint == 'commits':
+    elif endpoint == 'commits':
         curs.execute("""
             CREATE TABLE IF NOT EXISTS commits(
-            sha VARCHAR(255) NOT NULL,
+            sha VARCHAR(255) PRIMARY KEY,
             tree_sha VARCHAR(255) NOT NULL,
             parents_sha TEXT,
             node_id VARCHAR(255) NOT NULL,
@@ -122,19 +133,8 @@ def transform_load(conn, curs, json_data, endpoint):
             date_committed VARCHAR(255) NOT NULL,
             message TEXT NOT NULL,
             comments INTEGER NOT NULL,
-            PRIMARY KEY (sha, node_id)
-            );
-            """)
-
-    # Schema for contributors table
-    elif endpoint == 'contributors':
-        curs.execute("""
-            CREATE TABLE IF NOT EXISTS contributors(
-            id INTEGER NOT NULL,
-            node_id VARCHAR(255) NOT NULL,
-            login VARCHAR(255) NOT NULL,
-            contributions INTEGER NOT NULL,
-            PRIMARY KEY (id, node_id, login)
+            FOREIGN KEY(author) REFERENCES contributors(login) ON DELETE SET NULL,
+            FOREIGN KEY(committer) REFERENCES contributors(login) ON DELETE SET NULL
             );
             """)
 
@@ -142,7 +142,7 @@ def transform_load(conn, curs, json_data, endpoint):
     elif endpoint == 'issues':
         curs.execute("""
             CREATE TABLE IF NOT EXISTS issues(
-            id INTEGER NOT NULL,
+            id INTEGER PRIMARY KEY,
             node_id VARCHAR(255) NOT NULL,
             number INTEGER NOT NULL,
             state VARCHAR(255) NOT NULL,
@@ -155,7 +155,7 @@ def transform_load(conn, curs, json_data, endpoint):
             date_created VARCHAR(255) NOT NULL,
             date_updated VARCHAR(255) NOT NULL,
             date_closed VARCHAR(255),
-            PRIMARY KEY (id, node_id, number)
+            FOREIGN KEY(created_by) REFERENCES contributors(login) ON DELETE SET NULL
             );
             """)
 
@@ -163,7 +163,7 @@ def transform_load(conn, curs, json_data, endpoint):
     elif endpoint == 'pulls':
         curs.execute("""
             CREATE TABLE IF NOT EXISTS pulls(
-            id INTEGER NOT NULL,
+            id INTEGER PRIMARY KEY,
             node_id VARCHAR(255) NOT NULL,
             number INTEGER NOT NULL,
             state VARCHAR(255) NOT NULL,
@@ -180,14 +180,23 @@ def transform_load(conn, curs, json_data, endpoint):
             merge_sha VARCHAR(255),
             head_sha VARCHAR(255) NOT NULL,
             base_sha VARCHAR(255) NOT NULL,
-            PRIMARY KEY (id, node_id, number)
+            FOREIGN KEY(created_by) REFERENCES contributors(login) ON DELETE SET NULL
             );
             """)
 
     columns = None
     for item in json.loads(json_data):
+        # Columns and values for contributors table
+        if endpoint == 'contributors':
+            data_dict = {
+                'id': item['id'],
+                'node_id': item['node_id'],
+                'login': item['login'],
+                'contributions': item['contributions']
+            }
+
         # Columns and values for commits table
-        if endpoint == 'commits':
+        elif endpoint == 'commits':
             data_dict = {
                 'sha': item['sha'],
                 'tree_sha': item['commit']['tree']['sha'],
@@ -199,15 +208,6 @@ def transform_load(conn, curs, json_data, endpoint):
                 'date_committed': item['commit']['committer']['date'],
                 'message': item['commit']['message'],
                 'comments': item['commit']['comment_count']
-            }
-
-        # Columns and values for contributors table
-        elif endpoint == 'contributors':
-            data_dict = {
-                'id': item['id'],
-                'node_id': item['node_id'],
-                'login': item['login'],
-                'contributions': item['contributions']
             }
 
         # Columns and values for issues table
@@ -279,13 +279,13 @@ def main():
     conn = sqlite3.connect(f'{OWNER_REPO.split("/")[1]}_repo.db')
     curs = conn.cursor()
 
-    # ETL on commits
-    commits = json.dumps(extract(endpoint='commits'))
-    transform_load(conn, curs, commits, endpoint='commits') if commits else sys.exit()
-
     # ETL on contributors
     contributors = json.dumps(extract(endpoint='contributors'))
     transform_load(conn, curs, contributors, endpoint='contributors') if contributors else sys.exit()
+
+    # ETL on commits
+    commits = json.dumps(extract(endpoint='commits'))
+    transform_load(conn, curs, commits, endpoint='commits') if commits else sys.exit()
 
     # ETL on issues
     issues = json.dumps(extract(endpoint='issues', has_state=True))
