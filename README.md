@@ -1,3 +1,8 @@
+# GitHub ETL
+For this project, I wanted a way to create an activity report of a public GitHub repository, with activities being defined as, but not limited to, issues, pull requests, forks, stars, comments, and other related entities. I had to choose between different approaches to obtaining the data, specifically by either calling APIs or performing web scraping. I also had to create a schema for the data I collected, as I had the freedom to build as many tables as I wished to model the data. Regardless of the complexity of the schema, I wanted to be able to answer simple questions about the data by executing SQL queries.
+
+---
+
 ## Obtaining Data
 I chose to obtain the data by calling an API. I wrote a basic Python script, `repo_data.py`, which allows the user to extract, transform, and load data from any public GitHub repository (so that it can be used for further analysis). The `requests` library is used to make HTTP requests to the [GitHub REST API](https://docs.github.com/en/rest) and save the data locally in `json` format. This structured data is then parsed and stored in a local SQL database using `sqlite3`.
 
