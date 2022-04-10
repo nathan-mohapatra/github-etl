@@ -4,7 +4,7 @@ For this project, I wanted a way to create an activity report of a public GitHub
 ---
 
 ## Obtaining Data
-I chose to obtain the data by calling an API. I wrote a basic Python script, `repo_data.py`, which allows the user to extract, transform, and load data from any public GitHub repository (so that it can be used for further analysis). The `requests` library is used to make HTTP requests to the [GitHub REST API](https://docs.github.com/en/rest) and save the data locally in `json` format. This structured data is then parsed and stored in a local SQL database using `sqlite3`.
+I chose to obtain the data by calling an API. I wrote a basic Python script, `repo_data.py`, which allows the user to extract, transform, and load data from any public GitHub repository (so that it can be used for further analysis). The `requests` library is used to make HTTP requests to the [GitHub REST API](https://docs.github.com/en/rest) and save the data locally in `json` format. This structured data is then parsed and stored in a local relational database using `sqlite3`.
 
 The script serves as a flexible extract, transform, load (ETL) tool that integrates with the GitHub REST API. For example, regardless of the size or the activity level of a repository, it can be supplied (in global variable `OWNER_REPO`) and the script will execute all the same.
 
