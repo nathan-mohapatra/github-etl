@@ -40,7 +40,7 @@ The average number of pull requests per contributor is ~4.6.
 
 **What is the maximum number of commits per week?**
 ```
-SELECT COUNT(1) AS num_commits, STRFTIME('%W %Y', date_committed) as week 
+SELECT COUNT(1) AS num_commits, STRFTIME('%W %Y', date_committed) AS week 
 FROM commits 
 GROUP BY week
 ORDER BY num_commits DESC
