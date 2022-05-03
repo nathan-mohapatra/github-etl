@@ -112,10 +112,10 @@ def transform_load(conn, curs, json_data, endpoint):
     if endpoint == 'contributors':
         curs.execute("""
             CREATE TABLE IF NOT EXISTS contributors(
-            id INTEGER PRIMARY KEY,
-            node_id VARCHAR(255) NOT NULL,
-            login VARCHAR(255) NOT NULL,
-            contributions INTEGER NOT NULL
+                id INTEGER PRIMARY KEY,
+                node_id VARCHAR(255) NOT NULL,
+                login VARCHAR(255) NOT NULL,
+                contributions INTEGER NOT NULL
             );
             """)
 
@@ -123,18 +123,18 @@ def transform_load(conn, curs, json_data, endpoint):
     elif endpoint == 'commits':
         curs.execute("""
             CREATE TABLE IF NOT EXISTS commits(
-            sha VARCHAR(255) PRIMARY KEY,
-            tree_sha VARCHAR(255) NOT NULL,
-            parents_sha TEXT,
-            node_id VARCHAR(255) NOT NULL,
-            author VARCHAR(255),
-            date_authored VARCHAR(255) NOT NULL,
-            committer VARCHAR(255),
-            date_committed VARCHAR(255) NOT NULL,
-            message TEXT NOT NULL,
-            comments INTEGER NOT NULL,
-            FOREIGN KEY(author) REFERENCES contributors(login) ON DELETE SET NULL,
-            FOREIGN KEY(committer) REFERENCES contributors(login) ON DELETE SET NULL
+                sha VARCHAR(255) PRIMARY KEY,
+                tree_sha VARCHAR(255) NOT NULL,
+                parents_sha TEXT,
+                node_id VARCHAR(255) NOT NULL,
+                author VARCHAR(255),
+                date_authored VARCHAR(255) NOT NULL,
+                committer VARCHAR(255),
+                date_committed VARCHAR(255) NOT NULL,
+                message TEXT NOT NULL,
+                comments INTEGER NOT NULL,
+                FOREIGN KEY(author) REFERENCES contributors(login) ON DELETE SET NULL,
+                FOREIGN KEY(committer) REFERENCES contributors(login) ON DELETE SET NULL
             );
             """)
 
@@ -142,20 +142,20 @@ def transform_load(conn, curs, json_data, endpoint):
     elif endpoint == 'issues':
         curs.execute("""
             CREATE TABLE IF NOT EXISTS issues(
-            id INTEGER PRIMARY KEY,
-            node_id VARCHAR(255) NOT NULL,
-            number INTEGER NOT NULL,
-            state VARCHAR(255) NOT NULL,
-            title TEXT NOT NULL,
-            body TEXT,
-            assignees TEXT,
-            labels TEXT,
-            comments INTEGER NOT NULL,
-            created_by VARCHAR(255) NOT NULL,
-            date_created VARCHAR(255) NOT NULL,
-            date_updated VARCHAR(255) NOT NULL,
-            date_closed VARCHAR(255),
-            FOREIGN KEY(created_by) REFERENCES contributors(login) ON DELETE SET NULL
+                id INTEGER PRIMARY KEY,
+                node_id VARCHAR(255) NOT NULL,
+                number INTEGER NOT NULL,
+                state VARCHAR(255) NOT NULL,
+                title TEXT NOT NULL,
+                body TEXT,
+                assignees TEXT,
+                labels TEXT,
+                comments INTEGER NOT NULL,
+                created_by VARCHAR(255) NOT NULL,
+                date_created VARCHAR(255) NOT NULL,
+                date_updated VARCHAR(255) NOT NULL,
+                date_closed VARCHAR(255),
+                FOREIGN KEY(created_by) REFERENCES contributors(login) ON DELETE SET NULL
             );
             """)
 
@@ -163,24 +163,24 @@ def transform_load(conn, curs, json_data, endpoint):
     elif endpoint == 'pulls':
         curs.execute("""
             CREATE TABLE IF NOT EXISTS pulls(
-            id INTEGER PRIMARY KEY,
-            node_id VARCHAR(255) NOT NULL,
-            number INTEGER NOT NULL,
-            state VARCHAR(255) NOT NULL,
-            title TEXT NOT NULL,
-            body TEXT,
-            assignees TEXT,
-            reviewers TEXT,
-            labels TEXT,
-            created_by VARCHAR(255) NOT NULL,
-            date_created VARCHAR(255) NOT NULL,
-            date_updated VARCHAR(255) NOT NULL,
-            date_closed VARCHAR(255),
-            date_merged VARCHAR(255),
-            merge_sha VARCHAR(255),
-            head_sha VARCHAR(255) NOT NULL,
-            base_sha VARCHAR(255) NOT NULL,
-            FOREIGN KEY(created_by) REFERENCES contributors(login) ON DELETE SET NULL
+                id INTEGER PRIMARY KEY,
+                node_id VARCHAR(255) NOT NULL,
+                number INTEGER NOT NULL,
+                state VARCHAR(255) NOT NULL,
+                title TEXT NOT NULL,
+                body TEXT,
+                assignees TEXT,
+                reviewers TEXT,
+                labels TEXT,
+                created_by VARCHAR(255) NOT NULL,
+                date_created VARCHAR(255) NOT NULL,
+                date_updated VARCHAR(255) NOT NULL,
+                date_closed VARCHAR(255),
+                date_merged VARCHAR(255),
+                merge_sha VARCHAR(255),
+                head_sha VARCHAR(255) NOT NULL,
+                base_sha VARCHAR(255) NOT NULL,
+                FOREIGN KEY(created_by) REFERENCES contributors(login) ON DELETE SET NULL
             );
             """)
 
